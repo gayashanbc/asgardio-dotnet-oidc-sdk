@@ -176,8 +176,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           tag_name: v${{ needs.build.outputs.release_version }}
-          release_name: Asgardeo - .NET OIDC SDK Release v${{ github.env.RELEASE_VERSION }}
-          body: Asgardeo - .NET OIDC SDK version v${{ github.env.RELEASE_VERSION }} released!
+          release_name: Asgardeo - .NET OIDC SDK Release v${{ env.RELEASE_VERSION }}
+          body: Asgardeo - .NET OIDC SDK version v${{ env.RELEASE_VERSION }} released!
 
       - name: Upload Release Asset - SDK DLL file
         uses: actions/upload-release-asset@v1.0.2
