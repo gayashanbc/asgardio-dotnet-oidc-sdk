@@ -74,7 +74,7 @@ jobs:
       uses: actions/upload-artifact@v2.2.2
       with:
         name: sdk-build-artifacts
-        path: $env:SDK_DIR/bin/Release/
+        path: ${{ env.SDK_DIR }}/bin/Release/
         if-no-files-found: error
         retention-days: 1
         
@@ -82,7 +82,7 @@ jobs:
       uses: actions/upload-artifact@v2.2.2
       with:
         name: sample-installer-build-artifacts
-        path: $env:INSTALLER_DIR/bin/Release/
+        path: ${{ env.INSTALLER_DIR }}/bin/Release/
         if-no-files-found: error
         retention-days: 1
   
@@ -111,3 +111,9 @@ jobs:
         run: |
           echo ${{needs.build.outputs.current_version}} ${{needs.build.outputs.release_version}} ${{needs.build.outputs.development_version}}
           ls -R
+
+      - name: Create a Release
+        uses: actions/create-release@v1.1.4
+        with:
+          tag_name: hello
+          release_name: Hello World
