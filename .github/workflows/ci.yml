@@ -29,6 +29,9 @@ on:
 
 env:
   GIT_USERNAME: gayashanbc
+  SDK_DIR: SDK
+  SAMPLE_DIR: Sample
+  INSTALLER_DIR: Sample Installer
 
 jobs:
   build:
@@ -40,9 +43,6 @@ jobs:
       development_version: ${{ steps.version_inferring_step.outputs.development_version }}
     env:
       SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
-      SDK_DIR: SDK
-      SAMPLE_DIR: Sample
-      INSTALLER_DIR: Sample Installer
     steps:
     - name: Checkout
       uses: actions/checkout@v2
