@@ -27,13 +27,11 @@ on:
 jobs:
   build:
     name: Commits & PR Builder
-    strategy:
-      matrix:
-        configuration: [ Release ]
     runs-on: windows-latest
     outputs:
-      output1: ${{ steps.version_inferring_step.outputs.test1 }}
-      output2: ${{ steps.version_inferring_step.outputs.test2 }}
+      current_version: ${{ steps.version_inferring_step.outputs.current_version }}
+      release_version: ${{ steps.version_inferring_step.outputs.release_version }}
+      development_version: ${{ steps.version_inferring_step.outputs.development_version }}
     env:
       SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
     steps:
@@ -43,8 +41,9 @@ jobs:
     - id: version_inferring_step
       name: Infer Current Release Version, Next Release Version & Next Development Version
       run: |
-        echo "::set-output name=test1::hello"
-        echo "::set-output name=test2::world"
+        echo "::set-output name=current_version::one"
+        echo "::set-output name=release_version::two"
+        echo "::set-output name=development_version::three"
 
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
@@ -62,9 +61,7 @@ jobs:
       run:  nuget restore $env:SOLUTION_NAME
 
     - name: Build the SDK and Sample
-      env:
-        CONFIGURATION: ${{ matrix.configuration }}
-      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=$env:CONFIGURATION
+      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Release
         
     - name: Upload SDK build artifacts
       uses: actions/upload-artifact@v2.2.2
@@ -88,19 +85,19 @@ jobs:
     needs: [ build ]
     runs-on: windows-latest
     steps:
-      - name: Download build artifacts from 'build' job
+      - name: Download SDK build artifacts from 'build' job
         uses: actions/download-artifact@v2.0.8
         with:
           name: sdk-build-artifacts
           path: sdk-build-artifacts
           
-      - name: Download build artifacts from 'build' job
+      - name: Download Sample Installer build artifacts from 'build' job
         uses: actions/download-artifact@v2.0.8
         with:
           name: sample-installer-build-artifacts
           path: sample-installer-build-artifacts
 
-      - name: Display structure of downloaded files
+      - name: Debug Step
         run: |
-          echo ${{needs.build.outputs.output1}} ${{needs.build.outputs.output2}}
+          echo ${{needs.build.outputs.current_version}} ${{needs.build.outputs.release_version}} ${{needs.build.outputs.development_version}}
           ls -R
