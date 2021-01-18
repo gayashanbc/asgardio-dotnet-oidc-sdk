@@ -74,7 +74,7 @@ jobs:
       run:  nuget restore $env:SOLUTION_NAME
 
     - name: Build the SDK and Sample
-      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Release /p:Version=$env:RELEASE_VERSION
+      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Release /p:Version=${{ steps.version_inferring_step.outputs.release_version }}
         
     - name: Upload SDK build artifacts
       uses: actions/upload-artifact@v2.2.2
