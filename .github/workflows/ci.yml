@@ -60,16 +60,11 @@ jobs:
         CONFIGURATION: ${{ matrix.configuration }}
       run:  msbuild $env:Solution_Name /t:Rebuild /p:Configuration=$env:CONFIGURATION
         
-    - name: Display structure of downloaded files
-      run: |
-        ls -R
-        
     - name: Upload SDK build artifacts
       uses: actions/upload-artifact@v2.2.2
       with:
         name: sdk-build-artifacts
-        path: |
-          SDK/bin/Release/
+        path: SDK/bin/Release/
         if-no-files-found: error
         retention-days: 1
         
@@ -77,14 +72,13 @@ jobs:
       uses: actions/upload-artifact@v2.2.2
       with:
         name: sample-installer-build-artifacts
-        path: |
-          "Sample Installer/bin/Release/"
+        path: Sample Installer/bin/Release/
         if-no-files-found: error
         retention-days: 1
   
   release:
     name: Release Publisher
-    # if: github.event.pull_request.head.repo.owner.login == 'wso2-jenkins-bot'
+    if: github.event_name == "push" && github.actor != "asgardeo-github-bot"
     needs: [ build ]
     runs-on: windows-latest
     steps:
@@ -101,9 +95,5 @@ jobs:
           path: sample-installer-build-artifacts
 
       - name: Display structure of downloaded files
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
-          echo "$GITHUB_CONTEXT"
-          echo '---------------------------------------'
           ls -R
