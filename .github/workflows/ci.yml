@@ -34,6 +34,7 @@ jobs:
       development_version: ${{ steps.version_inferring_step.outputs.development_version }}
     env:
       SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
+      SDK_DIR: SDK
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -41,7 +42,8 @@ jobs:
     - id: version_inferring_step
       name: Infer Current Release Version, Next Release Version & Next Development Version
       run: |
-        echo "::set-output name=current_version::one"
+        $version_from_file = ([xml] (Get-Content $env:SDK_DIR\SDK.csproj)).Project.PropertyGroup.Version
+        echo "::set-output name=current_version::$version_from_file"
         echo "::set-output name=release_version::two"
         echo "::set-output name=development_version::three"
 
