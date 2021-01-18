@@ -139,15 +139,11 @@ jobs:
           
       - name: Bump Sample Project Version to Release Version
         run: |
-          $versionPattern = '\\[assembly: AssemblyVersion\\("(.*)"\\)\\]'
+          $versionPattern = '\[assembly: AssemblyVersion\("(.*)"\)\]'
           (Get-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs") | ForEach-Object{ if($_ -match $versionPattern){ '[assembly: AssemblyVersion("{0}")]' -f "$env:RELEASE_VERSION" } else { $_ } } | Set-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs"
         
       - name: Update version references in README
-        run: |
-          $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
-          $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
-          $versionPropertyXmlNode.InnerText = $env:RELEASE_VERSION
-          $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
+        run: ((Get-Content -Path README.md -Raw) -replace "$env:CURRENT_VERSION","$env:RELEASE_VERSION") | Set-Content -NoNewline -Path README.md
      
       - name: Restore Nuget Packages
         run:  nuget restore $env:SOLUTION_NAME
@@ -186,7 +182,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
-          tag_name: v${{ needs.build.outputs.release_version }}
+          tag_name: v${{ env.RELEASE_VERSION }}
           release_name: Asgardeo .NET OIDC SDK Release - v${{ env.RELEASE_VERSION }}
           body: Asgardeo .NET OIDC SDK version - v${{ env.RELEASE_VERSION }} released!
 
