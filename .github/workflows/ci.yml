@@ -23,6 +23,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   GIT_USERNAME: gayashanbc
@@ -38,6 +41,7 @@ jobs:
     env:
       SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
       SDK_DIR: SDK
+      SAMPLE_DIR: Sample
       INSTALLER_DIR: Sample Installer
     steps:
     - name: Checkout
@@ -93,6 +97,10 @@ jobs:
     name: Release Publisher
     if: github.event_name == 'push' && github.actor != 'asgardeo-github-bot'
     needs: [ build ]
+    env:
+      CURRENT_VERSION: ${{ needs.build.outputs.current_version }}
+      RELEASE_VERSION: ${{ needs.build.outputs.release_version }}
+      DEVELOPMENT_VERSION: ${{ needs.build.outputs.development_version }}
     runs-on: windows-latest
     steps:
       - name: Setup NuGet.exe
@@ -117,9 +125,50 @@ jobs:
 
       - name: Debug Step
         run: |
-          echo ${{needs.build.outputs.current_version}} ${{needs.build.outputs.release_version}} ${{needs.build.outputs.development_version}}
+          echo $env:CURRENT_VERSION $env:RELEASE_VERSION $env:DEVELOPMENT_VERSION
           ls -R
 
+      - name: Bump SDK Project Version to Release Version
+        run: |
+          $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
+          $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
+          $versionPropertyXmlNode.InnerText = $env:RELEASE_VERSION
+          $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
+          
+      - name: Bump Sample Project Version to Release Version
+        run: |
+          $versionPattern = '\\[assembly: AssemblyVersion\\("(.*)"\\)\\]'
+          (Get-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs") | ForEach-Object{ if($_ -match $versionPattern){ '[assembly: AssemblyVersion("{0}")]' -f "$env:RELEASE_VERSION" } else { $_ } } | Set-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs"
+        
+      - name: Update version references in README
+        run: |
+          $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
+          $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
+          $versionPropertyXmlNode.InnerText = $env:RELEASE_VERSION
+          $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
+     
+      - name: Create a commit for Release Version bumps
+        run: |
+          git status
+          git add README.md $env:SDK_DIR\SDK.csproj $env:SAMPLE_DIR\Properties\AssemblyInfo.cs
+          git commit -m "[WSO2 Release][Release $env:RELEASE_VERSION]Prepare release v$env:RELEASE_VERSION"
+          
+      - name: Bump SDK Project Version to Development Version
+        run: |
+          $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
+          $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
+          $versionPropertyXmlNode.InnerText = $env:DEVELOPMENT_VERSION
+          $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
+          
+      - name: Create a commit for Development Version bumps
+        run: |
+          git status
+          git add $env:SDK_DIR\SDK.csproj
+          git commit -m "[WSO2 Release][Release $env:RELEASE_VERSION]Prepare for next development iteration"
+         
+      - name: Push the pending commits
+        run: git push
+         
       - name: Create a Release
         id: create_release
         uses: actions/create-release@v1.1.4
@@ -127,8 +176,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           tag_name: v${{ needs.build.outputs.release_version }}
-          release_name: Asgardeo - .NET OIDC SDK Release v${{ needs.build.outputs.release_version }}
-          body: Asgardeo - .NET OIDC SDK version v${{ needs.build.outputs.release_version }} released!
+          release_name: Asgardeo - .NET OIDC SDK Release v$env:RELEASE_VERSION
+          body: Asgardeo - .NET OIDC SDK version v$env:RELEASE_VERSION released!
 
       - name: Upload Release Asset - SDK DLL file
         uses: actions/upload-release-asset@v1.0.2
@@ -146,6 +195,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: sample-installer-build-artifacts/PickupManagerOIDC-v${{ needs.build.outputs.release_version }}.msi
-          asset_name: PickupManagerOIDC-v${{ needs.build.outputs.release_version }}.msi
+          asset_path: sample-installer-build-artifacts/PickupManagerOIDC-v$env:RELEASE_VERSION.msi
+          asset_name: PickupManagerOIDC-v$env:RELEASE_VERSION.msi
           asset_content_type: application/octet-stream
