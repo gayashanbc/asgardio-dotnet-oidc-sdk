@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
 
 env:
-  GIT_USERNAME: gayashanbc
+  GIT_USERNAME: gayashan-github
   SDK_DIR: SDK
   SAMPLE_DIR: Sample
   INSTALLER_DIR: Sample Installer
@@ -95,7 +95,7 @@ jobs:
   
   release:
     name: Release Publisher
-    if: github.event_name == 'push' && github.actor != 'asgardeo-github-bot'
+    if: github.event_name == 'push' && github.actor != GIT_USERNAME
     needs: [ build ]
     env:
       CURRENT_VERSION: ${{ needs.build.outputs.current_version }}
@@ -123,10 +123,10 @@ jobs:
           name: sample-installer-build-artifacts
           path: sample-installer-build-artifacts
 
-      - name: Debug Step
+      - name: Configure Git User
         run: |
-          echo $env:CURRENT_VERSION $env:RELEASE_VERSION $env:DEVELOPMENT_VERSION
-          ls -R
+          git config user.name "$env:GIT_USERNAME"
+          git config user.email "gitshan@gmail.com"
 
       - name: Bump SDK Project Version to Release Version
         run: |
