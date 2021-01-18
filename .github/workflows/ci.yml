@@ -72,7 +72,7 @@ jobs:
   
   release:
     name: Release Publisher
-    if: github.event.pull_request.head.repo.owner.login == 'wso2-jenkins-bot'
+    # if: github.event.pull_request.head.repo.owner.login == 'wso2-jenkins-bot'
     needs: [ build ]
     runs-on: windows-latest
     steps:
@@ -82,4 +82,7 @@ jobs:
           name: sdk-build-artifacts
 
       - name: Display structure of downloaded files
-        run: ls -R
+        run: |
+          echo ${{ toJson(github.event) }}
+          echo '---------------------------------------'
+          ls -R
