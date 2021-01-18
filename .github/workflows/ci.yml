@@ -78,7 +78,7 @@ jobs:
   
   release:
     name: Release Publisher
-    if: github.event_name == "push" && github.actor != "asgardeo-github-bot"
+    if: ${{ github.event_name == "push" && github.actor != "asgardeo-github-bot" }}
     needs: [ build ]
     runs-on: windows-latest
     steps:
