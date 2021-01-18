@@ -45,9 +45,9 @@ jobs:
       run: |
         $version_from_file = ([xml] (Get-Content $env:SDK_DIR\SDK.csproj)).Project.PropertyGroup.Version
         $version_object = [version] $version_from_file.Split("-")[0]
-        $current_version = "$(version_object.Major).$(version_object.Minor).$(version_object.Build - 1)"
-        $release_version = "$(version_object.Major).$(version_object.Minor).$(version_object.Build)"
-        $development_version = "$(version_object.Major).$(version_object.Minor).$(version_object.Build + 1)-SNAPSHOT"
+        $current_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build - 1)'
+        $release_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build)'
+        $development_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build + 1)-SNAPSHOT'
         echo "::set-output name=current_version::$current_version"
         echo "::set-output name=release_version::$release_version"
         echo "::set-output name=development_version::$development_version"
@@ -92,6 +92,9 @@ jobs:
     needs: [ build ]
     runs-on: windows-latest
     steps:
+      - name: Setup NuGet.exe
+        uses: NuGet/setup-nuget@v1.0.5
+        
       - name: Download SDK build artifacts from 'build' job
         uses: actions/download-artifact@v2.0.8
         with:
