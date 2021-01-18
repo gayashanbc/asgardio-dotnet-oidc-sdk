@@ -40,14 +40,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - id: version_inferring_step
-      name: Infer Current Release Version, Next Release Version & Next Development Version
+    - name: Infer Current Release Version, Next Release Version & Next Development Version
+      id: version_inferring_step
       run: |
         $version_from_file = ([xml] (Get-Content $env:SDK_DIR\SDK.csproj)).Project.PropertyGroup.Version
         $version_object = [version] $version_from_file.Split("-")[0]
-        $current_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build - 1)'
-        $release_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build)'
-        $development_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build + 1)-SNAPSHOT'
+        $current_version = "$($version_object.Major).$($version_object.Minor).$($version_object.Build - 1)"
+        $release_version = "$($version_object.Major).$($version_object.Minor).$($version_object.Build)"
+        $development_version = "$($version_object.Major).$($version_object.Minor).$($version_object.Build + 1)-SNAPSHOT"
         echo "::set-output name=current_version::$current_version"
         echo "::set-output name=release_version::$release_version"
         echo "::set-output name=development_version::$development_version"
@@ -115,12 +115,16 @@ jobs:
       - name: Create a Release
         id: create_release
         uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           tag_name: hello
           release_name: Hello World
 
       - name: Upload a Release Asset
         uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.SDK_DIR }}/bin/Release/net461/Asgardeo.OIDC.SDK.dll
