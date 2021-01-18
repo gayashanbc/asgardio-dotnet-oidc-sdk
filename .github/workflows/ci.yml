@@ -97,6 +97,11 @@ jobs:
     steps:
       - name: Setup NuGet.exe
         uses: NuGet/setup-nuget@v1.0.5
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{secrets.MY_SECRET}}
         
       - name: Download SDK build artifacts from 'build' job
         uses: actions/download-artifact@v2.0.8
@@ -141,6 +146,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: sample-installer-build-artifacts/PickupManagerOIDC-v${{ needs.build.outputs.release_version }}
+          asset_path: sample-installer-build-artifacts/PickupManagerOIDC-v${{ needs.build.outputs.release_version }}.msi
           asset_name: PickupManagerOIDC-v${{ needs.build.outputs.release_version }}.msi
           asset_content_type: application/octet-stream
