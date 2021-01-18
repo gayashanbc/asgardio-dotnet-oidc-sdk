@@ -142,5 +142,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: sample-installer-build-artifacts/PickupManagerOIDC-v${{ needs.build.outputs.release_version }}
-          asset_name: PickupManagerOIDC-v${{ needs.build.outputs.release_version }}
+          asset_name: PickupManagerOIDC-v${{ needs.build.outputs.release_version }}.msi
           asset_content_type: application/octet-stream
