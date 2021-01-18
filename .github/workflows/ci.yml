@@ -45,9 +45,9 @@ jobs:
       run: |
         $version_from_file = ([xml] (Get-Content $env:SDK_DIR\SDK.csproj)).Project.PropertyGroup.Version
         $version_object = [version] $version_from_file.Split("-")[0]
-        $current_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build - 1)'
-        $release_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build)'
-        $development_version = '$(version_object.Major).$(version_object.Minor).$(version_object.Build + 1)-SNAPSHOT'
+        $current_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build - 1)'
+        $release_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build)'
+        $development_version = '$($version_object.Major).$($version_object.Minor).$($version_object.Build + 1)-SNAPSHOT'
         echo "::set-output name=current_version::$current_version"
         echo "::set-output name=release_version::$release_version"
         echo "::set-output name=development_version::$development_version"
@@ -113,7 +113,16 @@ jobs:
           ls -R
 
       - name: Create a Release
+        id: create_release
         uses: actions/create-release@v1.1.4
         with:
           tag_name: hello
           release_name: Hello World
+
+      - name: Upload a Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.SDK_DIR }}/bin/Release/net461/Asgardeo.OIDC.SDK.dll
+          asset_name: Asgardeo.OIDC.SDK.dll
+          asset_content_type: application/octet-stream
