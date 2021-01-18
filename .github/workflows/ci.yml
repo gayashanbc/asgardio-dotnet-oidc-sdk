@@ -32,6 +32,7 @@ env:
   SDK_DIR: SDK
   SAMPLE_DIR: Sample
   INSTALLER_DIR: Sample Installer
+  SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
 
 jobs:
   build:
@@ -41,8 +42,6 @@ jobs:
       current_version: ${{ steps.version_inferring_step.outputs.current_version }}
       release_version: ${{ steps.version_inferring_step.outputs.release_version }}
       development_version: ${{ steps.version_inferring_step.outputs.development_version }}
-    env:
-      SOLUTION_NAME: Asgardeo .NET OIDC SDK.sln
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -75,7 +74,7 @@ jobs:
       run:  nuget restore $env:SOLUTION_NAME
 
     - name: Build the SDK and Sample
-      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Release /p:Version=${{ steps.version_inferring_step.outputs.release_version }}
+      run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Release /p:Version=$env:RELEASE_VERSION
         
     - name: Upload SDK build artifacts
       uses: actions/upload-artifact@v2.2.2
@@ -103,6 +102,9 @@ jobs:
       DEVELOPMENT_VERSION: ${{ needs.build.outputs.development_version }}
     runs-on: windows-latest
     steps:
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
+      
       - name: Setup NuGet.exe
         uses: NuGet/setup-nuget@v1.0.5
 
@@ -147,6 +149,12 @@ jobs:
           $versionPropertyXmlNode.InnerText = $env:RELEASE_VERSION
           $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
      
+      - name: Restore Nuget Packages
+        run:  nuget restore $env:SOLUTION_NAME
+
+      - name: Build the SDK and Sample after Release Version bump
+        run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Debug
+        
       - name: Create a commit for Release Version bumps
         run: |
           git status
@@ -160,6 +168,9 @@ jobs:
           $versionPropertyXmlNode.InnerText = $env:DEVELOPMENT_VERSION
           $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
           
+      - name: Build the SDK and Sample after development version bump
+        run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Debug
+        
       - name: Create a commit for Development Version bumps
         run: |
           git status
@@ -176,8 +187,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_SECRET }}
         with:
           tag_name: v${{ needs.build.outputs.release_version }}
-          release_name: Asgardeo - .NET OIDC SDK Release v${{ env.RELEASE_VERSION }}
-          body: Asgardeo - .NET OIDC SDK version v${{ env.RELEASE_VERSION }} released!
+          release_name: Asgardeo .NET OIDC SDK Release - v${{ env.RELEASE_VERSION }}
+          body: Asgardeo .NET OIDC SDK version - v${{ env.RELEASE_VERSION }} released!
 
       - name: Upload Release Asset - SDK DLL file
         uses: actions/upload-release-asset@v1.0.2
