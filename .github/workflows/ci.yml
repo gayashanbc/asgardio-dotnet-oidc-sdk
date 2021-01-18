@@ -130,19 +130,19 @@ jobs:
           git config user.name "$env:GIT_USERNAME"
           git config user.email "gitshan@gmail.com"
 
-      - name: Bump SDK Project Version to Release Version
+      - name: Bump SDK Project Version to v${{ env.RELEASE_VERSION }}
         run: |
           $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
           $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
           $versionPropertyXmlNode.InnerText = $env:RELEASE_VERSION
           $sdkProjectFileContentXml.Save("$env:SDK_DIR\SDK.csproj")
           
-      - name: Bump Sample Project Version to Release Version
+      - name: Bump Sample Project Version to v${{ env.RELEASE_VERSION }}
         run: |
           $versionPattern = '\[assembly: AssemblyVersion\("(.*)"\)\]'
           (Get-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs") | ForEach-Object{ if($_ -match $versionPattern){ '[assembly: AssemblyVersion("{0}")]' -f "$env:RELEASE_VERSION" } else { $_ } } | Set-Content "$env:SAMPLE_DIR\Properties\AssemblyInfo.cs"
         
-      - name: Update version references in README
+      - name: Update version references in README to v${{ env.RELEASE_VERSION }}
         run: ((Get-Content -Path README.md -Raw) -replace "$env:CURRENT_VERSION","$env:RELEASE_VERSION") | Set-Content -NoNewline -Path README.md
      
       - name: Restore Nuget Packages
@@ -151,13 +151,13 @@ jobs:
       - name: Build the SDK and Sample after Release Version bump
         run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Debug
         
-      - name: Create a commit for Release Version bumps
+      - name: Create a commit for version bump - v${{ env.RELEASE_VERSION }}
         run: |
           git status
           git add README.md $env:SDK_DIR\SDK.csproj $env:SAMPLE_DIR\Properties\AssemblyInfo.cs
           git commit -m "[WSO2 Release][Release $env:RELEASE_VERSION]Prepare release v$env:RELEASE_VERSION"
           
-      - name: Bump SDK Project Version to Development Version
+      - name: Bump SDK Project Version to v${{ env.DEVELOPMENT_VERSION }}
         run: |
           $sdkProjectFileContentXml = [xml](Get-Content $env:SDK_DIR\SDK.csproj)
           $versionPropertyXmlNode = $sdkProjectFileContentXml.SelectSingleNode("Project//PropertyGroup//Version")
@@ -167,7 +167,7 @@ jobs:
       - name: Build the SDK and Sample after development version bump
         run:  msbuild $env:SOLUTION_NAME /t:Rebuild /p:Configuration=Debug
         
-      - name: Create a commit for Development Version bumps
+      - name: Create a commit for version bump - v${{ env.DEVELOPMENT_VERSION }}
         run: |
           git status
           git add $env:SDK_DIR\SDK.csproj
@@ -176,7 +176,7 @@ jobs:
       - name: Push the pending commits
         run: git push
          
-      - name: Create a Release
+      - name: Create Release - v${{ env.RELEASE_VERSION }}
         id: create_release
         uses: actions/create-release@v1.1.4
         env:
