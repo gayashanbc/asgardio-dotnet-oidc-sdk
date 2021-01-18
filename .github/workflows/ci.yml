@@ -95,7 +95,7 @@ jobs:
   
   release:
     name: Release Publisher
-    if: github.event_name == 'push' && github.actor != env.GIT_USERNAME
+    if: github.event_name == 'push' && github.actor != $env:GIT_USERNAME
     needs: [ build ]
     env:
       CURRENT_VERSION: ${{ needs.build.outputs.current_version }}
